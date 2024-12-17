@@ -3,7 +3,7 @@ import yt_dlp
 # Default download folder
 DOWNLOAD_FOLDER = "downloads/"
 
-def download_video(url):
+def download_media(url):
     with yt_dlp.YoutubeDL() as ydl:
         try:
             # Extract video information
@@ -14,13 +14,17 @@ def download_video(url):
                 print("No formats found.")
                 return
 
-            # Display all available formats
+            # Display all available formats (video and audio)
             print("Available formats:")
             for i, f in enumerate(formats):
                 # Display video formats with their resolution and codec
                 if "height" in f and f.get("vcodec") != "none":
                     print(
-                        f"{i + 1}: Quality: {f.get('format_note')}, Resolution: {f.get('height')}p, Extension: {f.get('ext')}, Codec: {f.get('vcodec')}"
+                        f"{i + 1}: [Video] Quality: {f.get('format_note')}, Resolution: {f.get('height')}p, Extension: {f.get('ext')}, Codec: {f.get('vcodec')}"
+                    )
+                elif f.get("acodec") != "none":
+                    print(
+                        f"{i + 1}: [Audio] Quality: {f.get('format_note')}, Codec: {f.get('acodec')}, Extension: {f.get('ext')}"
                     )
 
             # Ask user to select quality
@@ -29,13 +33,14 @@ def download_video(url):
                 selected_format = formats[choice]
                 format_id = selected_format.get("format_id", "bestvideo")
 
+                # Download both video and audio and merge them
                 ydl_opts = {
-                    "format": format_id,
-                    "outtmpl": DOWNLOAD_FOLDER
-                    + "%(title)s.%(ext)s",  # Save file in default folder
-                    "merge_output_format": "mkv",  # Ensure output is in mkv format
+                    "format": "bestvideo+bestaudio",
+                    "outtmpl": DOWNLOAD_FOLDER + "%(title)s.%(ext)s",  # Save file in default folder
+                    "merge_output_format": "mkv",  # Merge both into mkv format
                 }
 
+                # Download the selected format
                 with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                     ydl.download([url])
             else:
@@ -50,5 +55,5 @@ def download_video(url):
 
 
 if __name__ == "__main__":
-    video_url = input("Enter the video URL: ")
-    download_video(video_url)
+    media_url = input("Enter the video/audio URL: ")
+    download_media(media_url)
